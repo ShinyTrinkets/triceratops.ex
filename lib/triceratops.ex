@@ -8,12 +8,11 @@ defmodule Triceratops do
   def exec() do
     file_watcher("test/files/", fn(path) ->
       path
-        |> file_filter({:file, "jpg$"})
+        |> file_filter({:file, ""})
         |> file_copy("test/files2")
-        |> image_convert(:jpg)
         |> image_flip(:vertical)
         |> file_move("test/files3")
-        |> image_resize({:z, 250})
+        |> image_optimize(7)
         |> notification({"Triceratops", "Done!"})
       end)
   end

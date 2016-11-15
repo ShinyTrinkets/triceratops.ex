@@ -14,7 +14,7 @@ Modules:
 - copy, move, delete files and folders
 - compress and decompress different archive types (zip, 7z, gzip, bzip2, etc)
 - encrypt and decrypt files (AES, Blowfish, DES3, RSA public keys)
-- convert photos from one format to another, rotate, resize, compress image size
+- convert photos from one format to another, rotate, resize, optimize (PNG, JPG)
 - upload files to Amazon S3, or Dropbox
 - create JSON, CSV, or XML reports
 - hash check and sign files (MD5, SHA)
