@@ -9,6 +9,7 @@ Modules:
 - watch FTP, or SSH files and folders for changes
 - watch Github, or Bitbucket repository for changes
 - read websites, post and put HTTP requests
+- ping a list of websites or IPs
 - check e-mail, or send e-mails
 - copy, move, delete files and folders
 - compress and decompress different archive types (zip, 7z, gzip, bzip2, etc)
