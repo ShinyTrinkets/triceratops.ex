@@ -1,6 +1,31 @@
 defmodule Triceratops.Modules.LocalFs do
   import Triceratops.Helpers
 
+  @doc """
+  Manually trigger a list of local files
+  """
+  def file_list(folder, callback) do
+    files = ls_r(folder)
+    callback.(files)
+  end
+
+  @doc """
+  Recursively list files
+  """
+  @spec ls_r(charlist) :: list(charlist)
+  def ls_r(path \\ ".") do
+    cond do
+      File.regular?(path) -> [path]
+      File.dir?(path) ->
+        File.ls!(path)
+        |> Enum.map(&Path.join(path, &1))
+        |> Enum.map(&ls_r/1)
+        |> Enum.concat
+      true -> []
+    end
+  end
+
+
   def file_copy(input, output) when is_list(input) do
     IO.puts ~s(Copying #{length(input)} files...)
     Enum.map(input, fn(f) -> file_copy(f, output) end)

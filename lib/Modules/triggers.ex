@@ -8,30 +8,6 @@ defmodule Triceratops.Modules.Triggers do
   # Wait for a specific tweet
 
   @doc """
-  Manually trigger a list of files
-  """
-  def file_list(folder, callback) do
-    files = ls_r(folder)
-    callback.(files)
-  end
-
-  @doc """
-  Recursively list files
-  """
-  @spec ls_r(charlist) :: list(charlist)
-  def ls_r(path \\ ".") do
-    cond do
-      File.regular?(path) -> [path]
-      File.dir?(path) ->
-        File.ls!(path)
-        |> Enum.map(&Path.join(path, &1))
-        |> Enum.map(&ls_r/1)
-        |> Enum.concat
-      true -> []
-    end
-  end
-
-  @doc """
   Watch for new files inside a folder
   """
   def file_watcher(folder, callback) do

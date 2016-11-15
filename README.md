@@ -1,24 +1,20 @@
+
 # Triceratops
 
-**TODO: Add description**
+### Triceratops is a software automation platform, based on modules
 
-## Installation
+Modules:
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
-
-  1. Add `triceratops` to your list of dependencies in `mix.exs`:
-
-    ```elixir
-    def deps do
-      [{:triceratops, "~> 0.1.0"}]
-    end
-    ```
-
-  2. Ensure `triceratops` is started before your application:
-
-    ```elixir
-    def application do
-      [applications: [:triceratops]]
-    end
-    ```
-
+- watch local files and folders for changes
+- watch FTP, or SSH files and folders for changes
+- watch Github, or Bitbucket repository for changes
+- read websites, post and put HTTP requests
+- check e-mail, or send e-mails
+- copy, move, delete files and folders
+- compress and decompress different archive types (zip, 7z, gzip, bzip2, etc)
+- encrypt and decrypt files (AES, Blowfish, DES3, RSA public keys)
+- convert photos from one format to another, rotate, resize, compress image size
+- upload files to Amazon S3, or Dropbox
+- create JSON, CSV, or XML reports
+- hash check and sign files (MD5, SHA)
+- execute programs from command line
