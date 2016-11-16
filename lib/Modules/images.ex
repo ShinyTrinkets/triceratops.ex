@@ -5,6 +5,12 @@ defmodule Triceratops.Modules.Images do
   # IMPORTANT: By using sips, the image files are permanently altered! You cannot reverse the effects!
   # It's important to make copies of the original files if you want to keep them!
 
+  @spec image_convert(any, charlist) :: any
+  def image_convert(input, format) when is_binary(format) do
+    image_convert input, String.to_atom(format)
+  end
+
+  @spec image_convert(list(charlist), atom) :: list(charlist)
   def image_convert(input, format) when is_list(input) do
     IO.puts ~s(Converting #{length(input)} images...)
     Enum.map(input, fn(f) -> image_convert(f, format) end)
@@ -25,6 +31,12 @@ defmodule Triceratops.Modules.Images do
   end
 
 
+  @spec image_resize(any, {charlist, integer}) :: any
+  def image_resize(input, {type, size}) when is_binary(type) do
+    image_resize input, {String.to_atom(type), size}
+  end
+
+  @spec image_resize(list(charlist), {atom, integer}) :: list(charlist)
   def image_resize(input, {type, size}) when is_list(input) do
     IO.puts ~s(Resizing #{length(input)} images...)
     Enum.map(input, fn(f) -> image_resize(f, {type, size}) end)
@@ -45,6 +57,12 @@ defmodule Triceratops.Modules.Images do
   end
 
 
+  @spec image_flip(any, charlist) :: any
+  def image_flip(input, orientation) when is_binary(orientation) do
+    image_flip input, String.to_atom(orientation)
+  end
+
+  @spec image_flip(list(charlist), atom) :: list(charlist)
   def image_flip(input, orientation) when is_list(input) do
     IO.puts ~s(Flipping #{length(input)} images...)
     Enum.map(input, fn(f) -> image_flip(f, orientation) end)
@@ -63,6 +81,7 @@ defmodule Triceratops.Modules.Images do
   end
 
 
+  @spec image_rotate(list(charlist), integer) :: list(charlist)
   def image_rotate(input, angle) when is_list(input) do
     IO.puts ~s(Rotating #{length(input)} images...)
     Enum.map(input, fn(f) -> image_rotate(f, angle) end)
@@ -82,6 +101,7 @@ defmodule Triceratops.Modules.Images do
   Optimize PNG and JPG images;
   Requires: optipng and jpegoptim;
   """
+  @spec image_optimize(list(charlist), integer) :: list(charlist)
   def image_optimize(input, level) when is_list(input) do
     IO.puts ~s(Optimizing #{length(input)} images...)
     Enum.map(input, fn(f) -> image_optimize(f, level) end)

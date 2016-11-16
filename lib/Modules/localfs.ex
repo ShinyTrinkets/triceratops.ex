@@ -3,9 +3,9 @@ defmodule Triceratops.Modules.LocalFs do
   @doc """
   Manually trigger a list of local files
   """
+  @spec file_list(charlist, reference) :: any
   def file_list(folder, callback) do
-    files = ls_r(folder)
-    callback.(files)
+    callback.(ls_r(folder))
   end
 
   @doc """
@@ -24,16 +24,20 @@ defmodule Triceratops.Modules.LocalFs do
     end
   end
 
+
+  @spec fix_output(charlist, charlist) :: charlist
   defp fix_output(input, output) do
     if File.dir?(output), do: output <> "/" <> Path.basename(input), else: output
   end
 
 
+  @spec file_copy(list(charlist), charlist) :: list(charlist)
   def file_copy(input, output) when is_list(input) do
     IO.puts ~s(Copying #{length(input)} files...)
     Enum.map(input, fn(f) -> file_copy(f, output) end)
   end
 
+  @spec file_copy(charlist, charlist) :: charlist
   def file_copy(input, output) when is_binary(input) do
     output = fix_output(input, output)
     # Copies the contents in source to destination preserving its mode
@@ -43,11 +47,13 @@ defmodule Triceratops.Modules.LocalFs do
   end
 
 
+  @spec file_move(list(charlist), charlist) :: list(charlist)
   def file_move(input, output) when is_list(input) do
     IO.puts ~s(Moving #{length(input)} files...)
     Enum.map(input, fn(f) -> file_move(f, output) end)
   end
 
+  @spec file_move(charlist, charlist) :: charlist
   def file_move(input, output) when is_binary(input) do
     output = fix_output(input, output)
     # Renames the source file to destination file
@@ -57,11 +63,13 @@ defmodule Triceratops.Modules.LocalFs do
   end
 
 
+  @spec file_delete(list(charlist), any) :: list
   def file_delete(input, _) when is_list(input) do
     IO.puts ~s(Deleting #{length(input)} files...)
     Enum.map(input, fn(f) -> file_delete(f) end)
   end
 
+  @spec file_delete(charlist, any) :: none
   def file_delete(input, _) when is_binary(input) do
     # Tries to delete the file path
     :ok = File.rm!(input)
@@ -69,6 +77,7 @@ defmodule Triceratops.Modules.LocalFs do
     nil # no output for next operation
   end
 
+  @spec file_delete(charlist) :: none
   def file_delete(input) do
     file_delete(input, nil)
   end

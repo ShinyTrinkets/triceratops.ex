@@ -8,6 +8,7 @@ defmodule Triceratops do
       ["file_copy", "test/files2"],
       ["image_flip", "horizontal"],
       ["image_rotate", 90],
+      ["image_resize", ["w", 480]],
       ["file_move", "test/files3"],
       ["image_optimize", 7],
       ["notification", ["Triceratops", "Done!"]]
