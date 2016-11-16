@@ -1,37 +1,35 @@
 defmodule Triceratops.Runner do
+  require Logger
   import Triceratops.Functions
 
   @doc """
-  The head must always be the trigger function, the rest are the operations
+  Runs the project, that contains a list of operations
+  The first must always be the trigger, the rest are the operations
   """
   @spec run(list(list)) :: any
-  def run([trigger | project]) when is_list(trigger) and is_list(project) do
-    # Get the trigger name and the params
-    [trigger | [trigger_params|_]] = trigger
-    # Trigger must be an atom
+  def run([[trigger|params] | project]) when is_binary(trigger) and is_list(params) and is_list(project) do
     trigger = String.to_atom(trigger)
-    # The trigger calls the callback with 1 param
-    trigger_params = [trigger_params, fn(path) ->
-      launch(project, path)
-    end]
+    # Fix params: the callback should have 1 param
+    params = [hd(params), &(launch(project, &1))]
     # All function names + modules
     module = Map.get(all_functions, trigger)
-    IO.puts "Trigger: #{module}.#{trigger} #{inspect trigger_params}"
+    Logger.info "Trigger: #{trigger} #{inspect params}"
     # Launch the trigger
-    apply module, trigger, trigger_params
+    apply module, trigger, params
   end
 
   @spec launch(list, charlist) :: any
   defp launch([[op|params] | operations], input) when is_list(operations) and is_binary(input) do
     op = String.to_atom(op)
-    params = if length(params) > 0, do: hd(params), else: params 
+    params = if length(params) > 0, do: hd(params), else: params
     params = if is_list(params), do: List.to_tuple(params), else: params
     params = [input, params]
     # All function names + modules
     module = Map.get(all_functions, op)
-    IO.puts "Operation: #{module}.#{op} #{inspect params}"
+    Logger.info "Operation: #{op} #{inspect params}"
     # Launch the operation
     result = apply module, op, params
+    # Repeat cycle
     launch operations, result
   end
 

@@ -1,9 +1,19 @@
 
 use Mix.Config
 
+config :logger,
+  backends: [:console, {LoggerFileBackend, :info}]
+
+config :logger, :console,
+  format: "$date $time $levelpad$message\n"
+
+config :logger, :info,
+  level: :info,
+  path: "./info.log",
+  format: "$date $time $levelpad$message\n"
+
 config :porcelain, driver: Porcelain.Driver.Basic
 
-# In your config/config.exs file
 config :triceratops, Triceratops.Modules.Mail,
   adapter: Bamboo.SMTPAdapter,
   server: "mail.t2sbeta.com",

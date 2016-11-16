@@ -1,7 +1,14 @@
 defmodule Triceratops do
+  require Logger
+  @on_load :on_load
 
+  def on_load do
+    log = Application.get_env(:logger, :info)[:path]
+    if File.regular?(log), do: File.rm(log)
+    :ok
+  end
 
-  def exec do
+  def start do
     project = [
       ["file_watcher", "test/files/"],
       ["file_filter", ["file", ""]],
@@ -13,6 +20,7 @@ defmodule Triceratops do
       ["image_optimize", 7],
       ["notification", ["Triceratops", "Done!"]]
     ]
+    Logger.info "Running project!"
     Triceratops.Runner.run project
   end
 end
