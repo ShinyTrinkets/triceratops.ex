@@ -1,5 +1,4 @@
 defmodule Triceratops.Modules.LocalFs do
-  import Triceratops.Helpers
 
   @doc """
   Manually trigger a list of local files
@@ -23,6 +22,10 @@ defmodule Triceratops.Modules.LocalFs do
         |> Enum.concat
       true -> []
     end
+  end
+
+  defp fix_output(input, output) do
+    if File.dir?(output), do: output <> "/" <> Path.basename(input), else: output
   end
 
 
@@ -54,15 +57,19 @@ defmodule Triceratops.Modules.LocalFs do
   end
 
 
-  def delete_file(input) when is_list(input) do
+  def file_delete(input, _) when is_list(input) do
     IO.puts ~s(Deleting #{length(input)} files...)
-    Enum.map(input, fn(f) -> delete_file(f) end)
+    Enum.map(input, fn(f) -> file_delete(f) end)
   end
 
-  def delete_file(input) when is_binary(input) do
+  def file_delete(input, _) when is_binary(input) do
     # Tries to delete the file path
     :ok = File.rm!(input)
     IO.puts ~s(Deleted file "#{input}".)
     nil # no output for next operation
+  end
+
+  def file_delete(input) do
+    file_delete(input, nil)
   end
 end

@@ -30,6 +30,7 @@ defmodule Triceratops.Modules.Images do
     Enum.map(input, fn(f) -> image_resize(f, {type, size}) end)
   end
 
+  @spec image_resize(charlist, {atom, integer}) :: charlist
   def image_resize(input, {type, size}) when is_binary(input) do
     command = case type do
       :w -> ~s(sips --resampleWidth #{size} "#{input}")

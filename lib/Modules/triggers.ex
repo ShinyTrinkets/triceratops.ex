@@ -5,7 +5,7 @@ defmodule Triceratops.Modules.Triggers do
   """
   def timer({:once, time}, callback) do
     Process.sleep(time * 1000)
-    callback.()
+    callback.("")
   end
   def timer({:many, interval, :infinity}, callback) do
     # Interval in seconds, repeat forever
@@ -22,11 +22,11 @@ defmodule Triceratops.Modules.Triggers do
     receive do
       {:tick, _index} = message ->
         IO.inspect(message)
-        callback.()
+        callback.("")
         run_timer(callback)
       {:last_tick, _index} = message ->
         IO.inspect(message)
-        callback.()
+        callback.("")
         :done
     end
   end
