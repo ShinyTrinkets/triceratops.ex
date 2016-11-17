@@ -1,5 +1,7 @@
 defmodule Triceratops do
   require Logger
+  alias Poison.Parser
+  alias Triceratops.Project
   @on_load :on_load
 
   def on_load do
@@ -8,19 +10,23 @@ defmodule Triceratops do
     :ok
   end
 
-  def start do
-    project = [
-      ["file_watcher", "test/files/"],
-      ["file_filter", ["file", ""]],
-      ["file_copy", "test/files2"],
-      ["image_flip", "horizontal"],
-      ["image_rotate", 90],
-      ["image_resize", ["w", 480]],
-      ["file_move", "test/files3"],
-      ["image_optimize", 7],
-      ["notification", ["Triceratops", "Done!"]]
-    ]
-    Logger.info "Running project!"
-    Triceratops.Runner.run project
+  defp sleep_forever do
+    Process.sleep(250)
+    sleep_forever
+  end
+
+  def main(_) do
+    Logger.info "Warming up..."
+    # Fwatch.watch_dir("./projects/", fn(proj, events) ->
+    #   Logger.info ~s(Projects folder changed: #{inspect events})
+    #   if :created in events && :modified in events do
+    #     Logger.info ~s(New project: #{proj}.)
+    #   end
+    # end)
+    p = Parser.parse! File.read! "./project.json"
+    Logger.info "Running project..."
+    Project.run p
+    sleep_forever
+    Logger.info "Shutting down..."
   end
 end

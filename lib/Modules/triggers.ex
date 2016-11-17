@@ -10,12 +10,12 @@ defmodule Triceratops.Modules.Triggers do
   end
   def timer({:many, interval, :infinity}, callback) do
     # Interval in seconds, repeat forever
-    Ticker.start self, interval
+    Ticker.start_tick self, interval
     run_timer callback
   end
-  def timer({:many, interval, repeat}, callback) do
+  def timer({:many, interval, repeat_nr}, callback) do
     # Interval in seconds, repeat number of times
-    Ticker.start self, interval, (interval * (repeat-1) * 1000)
+    Ticker.start_tick self, interval, (interval * (repeat_nr-1) * 1000)
     run_timer callback
   end
 
@@ -39,8 +39,7 @@ defmodule Triceratops.Modules.Triggers do
   def file_watcher(folder, callback) do
     # Watch a directory and registers a callback
     Fwatch.watch_dir(folder, fn(path, events) ->
-      IO.puts "File #{path} changed"
-      IO.inspect events
+      Logger.info ~s(File #{path} changed: #{inspect events})
       if :created in events && :modified in events do
         callback.(path)
       end
@@ -48,38 +47,37 @@ defmodule Triceratops.Modules.Triggers do
   end
 end
 
-
 defmodule Ticker do
-  # Public api
-  def start(recipient_pid, tick_interval, duration \\ :infinity) do
-    # Process.monitor(pid) # what to do if the process is dead before this?
-    # start a process whose only responsibility is to wait for the interval
-    ticker_pid = spawn(__MODULE__, :loop, [recipient_pid, tick_interval * 1000, 1])
-    # and send a tick to the recipient pid and loop back
+  require Logger
+
+  def start_tick(recipient_pid, tick_interval, duration \\ :infinity) do
+    # Start a process whose only responsibility is to wait for the interval
+    ticker_pid = spawn(__MODULE__, :loop_timer, [recipient_pid, tick_interval * 1000, 1])
+    # And send a tick to the recipient pid and loop back
     send(ticker_pid, :send_tick)
     schedule_terminate(ticker_pid, duration)
-    # returns the pid of the ticker, which can be used to stop the ticker
+    # Return the pid of the ticker, which can be used to stop the ticker
     ticker_pid
   end
 
-  def stop(ticker_pid) do
+  def stop_tick(ticker_pid) do
     send(ticker_pid, :terminate)
   end
 
-  # Internal api
-  def loop(recipient_pid, tick_interval, current_index) do
+  def loop_timer(recipient_pid, tick_interval, current_index) do
+    # Internal api
     receive do
       :send_tick ->
         send(recipient_pid, {:tick, current_index}) # send the tick event
         Process.send_after(self, :send_tick, tick_interval) # schedule a self event after interval
-        loop(recipient_pid, tick_interval, current_index + 1)
+        loop_timer(recipient_pid, tick_interval, current_index + 1)
       :terminate ->
         :ok # terminating
         # NOTE: we could also optionally wire it up to send a last_tick event when it terminates
         send(recipient_pid, {:last_tick, current_index})
       oops ->
-        IO.puts("Received unexepcted message: #{inspect oops}")
-        loop(recipient_pid, tick_interval, current_index + 1)
+        Logger.info "Received unexpected message: #{inspect oops}"
+        loop_timer(recipient_pid, tick_interval, current_index + 1)
     end
   end
 

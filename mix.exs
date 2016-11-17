@@ -22,6 +22,7 @@ defmodule Triceratops.Mixfile do
   defp deps do
     [
       {:logger_file_backend, "~> 0.0"},
+      {:poison, "~> 3.0"},
       {:porcelain, "~> 2.0"},
       {:fwatch, "~> 0.5"},
       {:bamboo_smtp, "~> 1.2"}
