@@ -7,7 +7,7 @@ defmodule Triceratops.Modules.Mail do
     message = "<b>Files:</b> " <> to_string(input)
     new_email(
       to: to,
-      from: config[:username],
+      from: config.username,
       subject: "Triceratops notification",
       html_body: message
     ) |> deliver_now

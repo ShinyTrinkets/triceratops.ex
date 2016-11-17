@@ -1,19 +1,20 @@
 defmodule Triceratops.Modules.FtpFs do
+  require Logger
 
   def ftp_connect do
     config = Application.get_env(:triceratops, __MODULE__)
     :inets.start
-    {:ok, pid} = :inets.start(:ftpc, host: config[:host])
+    {:ok, pid} = :inets.start(:ftpc, host: config.host)
     # Login host with username and password
-    :ok = :ftp.user(pid, config[:username], config[:password])
-    IO.puts ~s(Connected to FTP at "#{config[:host]}".)
+    :ok = :ftp.user(pid, config.username, config.password)
+    Logger.info ~s(Connected to FTP at "#{config.host}".)
     pid
   end
 
   def ftp_close(pid) do
     # Kill the connection to host
     :inets.stop(:ftpc, pid)
-    IO.puts ~s(Closed FTP connection.)
+    Logger.info ~s(Closed FTP connection.)
     nil
   end
 
@@ -34,7 +35,7 @@ defmodule Triceratops.Modules.FtpFs do
   def ftp_upload(local_file, remote_folder) do
     pid = ftp_connect
     stt = File.stat! local_file
-    IO.puts ~s(Local file size=#{stt.size} bits.)
+    Logger.info ~s(Local file size=#{stt.size} bits.)
     remote_file = remote_folder <> "/" <> Path.basename(local_file)
     # Push local file into remote directory
     :ok = :ftp.send pid, :binary.bin_to_list(local_file), :binary.bin_to_list(remote_file)

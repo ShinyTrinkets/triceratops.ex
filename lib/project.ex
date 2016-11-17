@@ -1,4 +1,4 @@
-defmodule Triceratops.Runner do
+defmodule Triceratops.Project do
   require Logger
   import Triceratops.Functions
 

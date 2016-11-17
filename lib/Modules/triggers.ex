@@ -1,4 +1,5 @@
 defmodule Triceratops.Modules.Triggers do
+  require Logger
 
   @doc """
   Start events when time runs out and repeat (once, or multiple times)

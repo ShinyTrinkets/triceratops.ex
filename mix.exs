@@ -5,13 +5,18 @@ defmodule Triceratops.Mixfile do
     [app: :triceratops,
      version: "0.1.0",
      elixir: "~> 1.3",
+     escript: escript,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps()]
+     deps: deps]
   end
 
   def application do
-    [applications: [:porcelain, :fwatch, :bamboo, :bamboo_smtp]]
+    [applications: [:logger, :porcelain, :fwatch, :bamboo, :bamboo_smtp]]
+  end
+
+  def escript do
+    [main_module: Triceratops]
   end
 
   defp deps do

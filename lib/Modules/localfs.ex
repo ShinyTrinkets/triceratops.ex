@@ -1,12 +1,11 @@
 defmodule Triceratops.Modules.LocalFs do
+  require Logger
 
   @doc """
   Manually trigger a list of local files
   """
   @spec file_list(charlist, reference) :: any
-  def file_list(folder, callback) do
-    callback.(ls_r(folder))
-  end
+  def file_list(folder, callback), do: callback.(ls_r(folder))
 
   @doc """
   Recursively list files
@@ -33,7 +32,7 @@ defmodule Triceratops.Modules.LocalFs do
 
   @spec file_copy(list(charlist), charlist) :: list(charlist)
   def file_copy(input, output) when is_list(input) do
-    IO.puts ~s(Copying #{length(input)} files...)
+    Logger.info ~s(Copying #{length(input)} files...)
     Enum.map(input, fn(f) -> file_copy(f, output) end)
   end
 
@@ -42,14 +41,14 @@ defmodule Triceratops.Modules.LocalFs do
     output = fix_output(input, output)
     # Copies the contents in source to destination preserving its mode
     :ok = File.cp!(input, output)
-    IO.puts ~s(Copied file "#{input}" into "#{output}".)
+    Logger.info ~s(Copied file "#{input}" into "#{output}".)
     output # return the output for next operation
   end
 
 
   @spec file_move(list(charlist), charlist) :: list(charlist)
   def file_move(input, output) when is_list(input) do
-    IO.puts ~s(Moving #{length(input)} files...)
+    Logger.info ~s(Moving #{length(input)} files...)
     Enum.map(input, fn(f) -> file_move(f, output) end)
   end
 
@@ -58,14 +57,14 @@ defmodule Triceratops.Modules.LocalFs do
     output = fix_output(input, output)
     # Renames the source file to destination file
     :ok = File.rename(input, output)
-    IO.puts ~s(Moved file "#{input}" in "#{output}".)
+    Logger.info ~s(Moved file "#{input}" in "#{output}".)
     output # return the output for next operation
   end
 
 
   @spec file_delete(list(charlist), any) :: list
   def file_delete(input, _) when is_list(input) do
-    IO.puts ~s(Deleting #{length(input)} files...)
+    Logger.info ~s(Deleting #{length(input)} files...)
     Enum.map(input, fn(f) -> file_delete(f) end)
   end
 
@@ -73,12 +72,11 @@ defmodule Triceratops.Modules.LocalFs do
   def file_delete(input, _) when is_binary(input) do
     # Tries to delete the file path
     :ok = File.rm!(input)
-    IO.puts ~s(Deleted file "#{input}".)
+    Logger.info ~s(Deleted file "#{input}".)
     nil # no output for next operation
   end
 
   @spec file_delete(charlist) :: none
-  def file_delete(input) do
-    file_delete(input, nil)
-  end
+  def file_delete(input), do: file_delete(input, nil)
+
 end
