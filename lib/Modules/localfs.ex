@@ -5,7 +5,7 @@ defmodule Triceratops.Modules.LocalFs do
   Manually trigger a list of local files
   """
   @spec file_list(charlist, reference) :: any
-  def file_list(folder, callback), do: callback.(ls_r(folder))
+  def file_list(folder, callback), do: callback.(ls_r(Path.expand(folder)))
 
   @doc """
   Recursively list files

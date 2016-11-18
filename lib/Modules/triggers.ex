@@ -11,41 +11,50 @@ defmodule Triceratops.Modules.Triggers do
   def timer({:many, interval, :infinity}, callback) do
     # Interval in seconds, repeat forever
     Ticker.start_tick self, interval
-    run_timer callback
+    timer_loop callback
   end
   def timer({:many, interval, repeat_nr}, callback) do
     # Interval in seconds, repeat number of times
     Ticker.start_tick self, interval, (interval * (repeat_nr-1) * 1000)
-    run_timer callback
+    timer_loop callback
   end
 
-  defp run_timer(callback) do
+  defp timer_loop(callback) do
     receive do
-      {:tick, _index} = message ->
-        IO.inspect(message)
+      {:tick, index} ->
+        Logger.info ~s(Tick-tock: #{index}.)
         callback.("")
-        run_timer(callback)
-      {:last_tick, _index} = message ->
-        IO.inspect(message)
+        timer_loop(callback)
+      {:last_tick, index}  ->
+        Logger.info ~s(Tick-tock: #{index}. Finished!)
         callback.("")
         :done
     end
   end
-
 
   @doc """
   Start events when new files are created inside a folder
   """
   def file_watcher(folder, callback) do
     # Watch a directory and registers a callback
-    Fwatch.watch_dir(folder, fn(path, events) ->
-      Logger.info ~s(File #{path} changed: #{inspect events})
-      if :created in events && :modified in events do
-        callback.(path)
-      end
-    end)
+    {:ok, _pid} = :fs.start_link(:fs_watcher, Path.expand(folder))
+    :fs.subscribe(:fs_watcher)
+    file_watcher_loop callback
   end
+
+  def file_watcher_loop(callback) do
+    receive do
+      {_pid, {:fs, :file_event}, {path, events}} ->
+        Logger.info ~s(... file #{path} events: #{inspect events})
+        if :created in events && :modified in events do
+          Logger.info ~s(File #{path} created: #{inspect events})
+          callback.(to_string(path))
+        end
+        file_watcher_loop(callback)
+      end
+    end
 end
+
 
 defmodule Ticker do
   require Logger

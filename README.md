@@ -16,6 +16,7 @@ Modules:
 - encrypt and decrypt files (AES, Blowfish, DES3, RSA public keys)
 - convert photos from one format to another, rotate, resize, optimize (PNG, JPG)
 - upload files to Amazon S3, or Dropbox
+- operations in database (read, update, delete)
 - create JSON, CSV, or XML reports
 - hash check and sign files (MD5, SHA)
 - execute programs from command line

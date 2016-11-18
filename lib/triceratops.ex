@@ -10,11 +10,6 @@ defmodule Triceratops do
     :ok
   end
 
-  defp sleep_forever do
-    Process.sleep(250)
-    sleep_forever
-  end
-
   def main(_) do
     Logger.info "Warming up..."
     # Fwatch.watch_dir("./projects/", fn(proj, events) ->
@@ -26,7 +21,6 @@ defmodule Triceratops do
     p = Parser.parse! File.read! "./project.json"
     Logger.info "Running project..."
     Project.run p
-    sleep_forever
     Logger.info "Shutting down..."
   end
 end
