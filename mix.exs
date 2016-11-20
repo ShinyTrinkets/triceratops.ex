@@ -22,10 +22,13 @@ defmodule Triceratops.Mixfile do
   defp deps do
     [
       {:logger_file_backend, "~> 0.0"},
+      {:exactor, "~> 2.2", warn_missing: false},
       {:poison, "~> 3.0"},
       {:porcelain, "~> 2.0"},
       {:fs, github: "synrc/fs"},
-      {:bamboo_smtp, "~> 1.2"}
+      {:filesmasher, github: "croqaz/FileSmasher"},
+      {:bamboo_smtp, "~> 1.2"},
+      {:credo, "~> 0.5", only: [:dev, :test]}
     ]
   end
 end
