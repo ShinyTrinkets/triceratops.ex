@@ -1,4 +1,7 @@
 defmodule Triceratops.Project do
+
+  @moduledoc "Module for running a project."
+
   require Logger
   import Triceratops.Functions
 

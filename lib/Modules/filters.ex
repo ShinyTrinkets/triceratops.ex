@@ -1,8 +1,8 @@
 defmodule Triceratops.Modules.Filters do
 
-  @doc """
-  Filter 1 or more files or folders, based on their type and name
-  """
+  @moduledoc "Module for filtering file and folder names."
+
+  @doc "Filter 1 or more files or folders, based on their type and name."
   @spec file_filter(any, {charlist, charlist}) :: any
   def file_filter(input, {type, expr}) when is_binary(type),
     do: file_filter(input, {String.to_atom(type), expr})

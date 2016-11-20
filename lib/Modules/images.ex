@@ -1,10 +1,9 @@
 defmodule Triceratops.Modules.Images do
+
+  @moduledoc "Module for dealing with images."
+
   require Logger
   alias Porcelain.Result
-
-  # Using Simple Image Conversion from command line
-  # IMPORTANT: By using sips, the image files are permanently altered! You cannot reverse the effects!
-  # It's important to make copies of the original files if you want to keep them!
 
   @doc """
   Convert an image from a format, into another format.

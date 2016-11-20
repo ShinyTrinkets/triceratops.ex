@@ -15,7 +15,8 @@ Modules:
 - compress and decompress different archive types (zip, 7z, gzip, bzip2, etc)
 - encrypt and decrypt files (AES, Blowfish, DES3, RSA public keys)
 - convert photos from one format to another, rotate, resize, optimize (PNG, JPG)
-- upload files to Amazon S3, or Dropbox
+- join more photos into a time-lapse
+- upload files to Amazon S3, Google Drive, or Dropbox
 - operations in database (read, update, delete)
 - create JSON, CSV, or XML reports
 - hash check and sign files (MD5, SHA)

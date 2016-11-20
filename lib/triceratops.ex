@@ -1,14 +1,20 @@
 defmodule Triceratops do
+
+  @moduledoc "The main module."
+
+  # use Application
   require Logger
   alias Poison.Parser
   alias Triceratops.Project
-  @on_load :on_load
 
+  @on_load :on_load
   def on_load do
     log = Application.get_env(:logger, :info)[:path]
     if File.regular?(log), do: File.rm(log)
     :ok
   end
+
+  # def start(_, _) do :ok end
 
   def main(_) do
     Logger.info "Warming up..."

@@ -15,7 +15,7 @@ defmodule Triceratops.Modules.Triggers do
   end
   def timer({:many, interval, repeat_nr}, callback) do
     # Interval in seconds, repeat number of times
-    Ticker.start_tick self, interval, (interval * (repeat_nr-1) * 1000)
+    Ticker.start_tick self, interval, (interval * (repeat_nr - 1) * 1000)
     timer_loop callback
   end
 

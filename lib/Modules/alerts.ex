@@ -1,4 +1,7 @@
 defmodule Triceratops.Modules.Alerts do
+
+  @moduledoc "Module for showing system notifications."
+
   alias Porcelain.Result
 
   def notification(_, {title, message}) do

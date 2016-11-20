@@ -1,21 +1,21 @@
 defmodule Triceratops.Modules.LocalFs do
+
+  @moduledoc "Module for dealing local files and folders."
+
   require Logger
 
-  @doc """
-  Manually trigger a list of local files
-  """
+  @doc "Manually trigger a list of local files."
   @spec file_list(charlist, reference) :: any
   def file_list(folder, callback), do: callback.(ls_r(Path.expand(folder)))
 
-  @doc """
-  Recursively list files
-  """
+  @doc "Recursively list files."
   @spec ls_r(charlist) :: list(charlist)
   def ls_r(path \\ ".") do
     cond do
       File.regular?(path) -> [path]
       File.dir?(path) ->
-        File.ls!(path)
+        path
+        |> File.ls!
         |> Enum.map(&Path.join(path, &1))
         |> Enum.map(&ls_r/1)
         |> Enum.concat
@@ -26,6 +26,7 @@ defmodule Triceratops.Modules.LocalFs do
 
   @spec fix_output(charlist, charlist) :: charlist
   defp fix_output(input, output) do
+    # This is just a helper function
     if File.dir?(output), do: output <> "/" <> Path.basename(input), else: output
   end
 
