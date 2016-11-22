@@ -2,7 +2,7 @@ defmodule Triceratops.Functions do
 
   @moduledoc "Module for finding all available Triceratops functions."
 
-  @modules ["Triggers", "Alerts", "Filters", "Images", "LocalFs", "FtpFs"]
+  @modules ["Alerts", "Filters", "Time", "Images", "LocalFs", "FtpFs", "Compress"]
 
   def all_functions do
     fix = fn(m) ->

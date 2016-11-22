@@ -4,8 +4,6 @@ defmodule Triceratops do
 
   # use Application
   require Logger
-  alias Poison.Parser
-  alias Triceratops.Project
 
   @on_load :on_load
   def on_load do
@@ -14,19 +12,32 @@ defmodule Triceratops do
     :ok
   end
 
-  # def start(_, _) do :ok end
+  # def start(_type, _args) do
+  #   Triceratops.Supervisor.start_link
+  # end
 
   def main(_) do
     Logger.info "Warming up..."
-    # Fwatch.watch_dir("./projects/", fn(proj, events) ->
-    #   Logger.info ~s(Projects folder changed: #{inspect events})
-    #   if :created in events && :modified in events do
-    #     Logger.info ~s(New project: #{proj}.)
-    #   end
-    # end)
-    p = Parser.parse! File.read! "./project.json"
-    Logger.info "Running project..."
-    Project.run p
+    # ...
     Logger.info "Shutting down..."
+  end
+end
+
+
+defmodule Triceratops.Supervisor do
+
+  @moduledoc "The main supervisor."
+
+  use Supervisor
+
+  def start_link do
+    Supervisor.start_link(__MODULE__, :ok)
+  end
+
+  def init(:ok) do
+    children = [
+      worker(Triceratops.Project.Watcher, [Triceratops.Project.Watcher])
+    ]
+    supervise(children, strategy: :one_for_one)
   end
 end

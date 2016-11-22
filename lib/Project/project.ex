@@ -1,19 +1,19 @@
-defmodule Triceratops.Project do
+defmodule Triceratops.Project.Runner do
 
-  @moduledoc "Module for running a project."
+  @moduledoc "Module for launching projects."
 
   require Logger
-  import Triceratops.Functions
+  import Triceratops.Functions, only: :functions
 
   @doc """
-  Runs the project, that contains a list of operations
+  Launches the project, that contains a list of operations
   The first must always be the trigger, the rest are the operations
   """
-  @spec run(list(list)) :: any
-  def run([[trigger|params] | project]) when is_binary(trigger) and is_list(params) and is_list(project) do
+  @spec launch(list(list)) :: any
+  def launch([[trigger|params] | project]) when is_binary(trigger) and is_list(params) and is_list(project) do
     trigger = String.to_atom(trigger)
     # Fix params: the callback should have 1 param
-    params = [hd(params), &(launch(project, &1))]
+    params = [hd(params), &(run(project, &1))]
     # All function names + modules
     module = Map.get(all_functions, trigger)
     Logger.info "Trigger: #{trigger} #{inspect params}"
@@ -21,8 +21,9 @@ defmodule Triceratops.Project do
     apply module, trigger, params
   end
 
-  @spec launch(list, charlist) :: any
-  defp launch([[op|params] | operations], input) when is_list(operations) and is_binary(input) do
+  @doc "Runs the operations, in order"
+  @spec run(list, charlist) :: any
+  def run([[op|params] | operations], input) when is_list(operations) and is_binary(input) do
     op = String.to_atom(op)
     params = if length(params) > 0, do: hd(params), else: params
     params = if is_list(params), do: List.to_tuple(params), else: params
@@ -33,12 +34,11 @@ defmodule Triceratops.Project do
     # Launch the operation
     result = apply module, op, params
     # Repeat cycle
-    launch operations, result
+    run operations, result
   end
 
-  @spec launch(list, charlist | none) :: charlist | none
-  defp launch([], result) do
+  @spec run(list, charlist | none) :: charlist | none
+  def run([], result) do
     result
   end
-
 end

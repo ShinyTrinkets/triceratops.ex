@@ -1,8 +1,29 @@
 defmodule Triceratops.Modules.LocalFs do
 
-  @moduledoc "Module for dealing local files and folders."
+  @moduledoc "Module for dealing with local files and folders."
 
   require Logger
+
+  @doc "TRIGGER: Start events when new files are created inside a folder."
+  @spec trigger_file_watcher(charlist, reference) :: any
+  def trigger_file_watcher(folder, callback) do
+   # Watch a directory and registers a callback
+   {:ok, _pid} = :fs.start_link(:fs_watcher, Path.expand(folder))
+   :fs.subscribe(:fs_watcher)
+   file_watcher_loop callback
+  end
+
+  def file_watcher_loop(callback) do
+    receive do
+      {_pid, {:fs, :file_event}, {path, events}} ->
+        Logger.info ~s(... file #{path} events: #{inspect events})
+        if :created in events && :modified in events do
+          Logger.info ~s(File #{path} created: #{inspect events})
+          callback.(to_string(path))
+        end
+        file_watcher_loop(callback)
+    end
+  end
 
   @doc "Manually trigger a list of local files."
   @spec file_list(charlist, reference) :: any

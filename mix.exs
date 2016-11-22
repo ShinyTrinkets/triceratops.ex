@@ -12,7 +12,9 @@ defmodule Triceratops.Mixfile do
   end
 
   def application do
-    [applications: [:logger, :porcelain, :bamboo, :bamboo_smtp]]
+    [applications: [
+      :logger, :logger_file_backend, :porcelain, :fs, :filesmasher, :bamboo, :bamboo_smtp]
+    ]
   end
 
   def escript do
@@ -22,7 +24,6 @@ defmodule Triceratops.Mixfile do
   defp deps do
     [
       {:logger_file_backend, "~> 0.0"},
-      {:exactor, "~> 2.2", warn_missing: false},
       {:poison, "~> 3.0"},
       {:porcelain, "~> 2.0"},
       {:fs, github: "synrc/fs"},

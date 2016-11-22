@@ -1,4 +1,7 @@
 defmodule Triceratops.Modules.Mail do
+
+  @moduledoc "Module for dealing with e-mails."
+
   use Bamboo.Mailer, otp_app: :triceratops
   import Bamboo.Email
 
