@@ -36,7 +36,8 @@ defmodule Triceratops.Supervisor do
 
   def init(:ok) do
     children = [
-      worker(Triceratops.Project.Watcher, [Triceratops.Project.Watcher])
+      worker(Triceratops.Project.Watcher, []),
+      worker(Triceratops.Project.Manager, [])
     ]
     supervise(children, strategy: :one_for_one)
   end

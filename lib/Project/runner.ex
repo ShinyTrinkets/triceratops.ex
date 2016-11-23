@@ -46,4 +46,13 @@ defmodule Triceratops.Project.Runner do
     Logger.info "Finished a project! Result = #{inspect result}"
     result
   end
+
+  @doc ~s(Helper function that converts a path to an atom with the base file name.)
+  @spec path_to_atom(charlist) :: atom
+  def path_to_atom(path) do
+    path
+      |> Path.basename
+      |> String.replace_trailing(".json", "")
+      |> String.to_atom
+  end
 end
