@@ -102,41 +102,37 @@ defmodule Triceratops.Servers.LocalWatcher do
 
   @doc ~s(Watch a specified directory.)
   def start_link(args, options \\ []) do
-    {name, args} = Keyword.pop(args, :name)
-    GenServer.start_link(__MODULE__, args, [name: name] ++ options)
+    GenServer.start_link(__MODULE__, args, [name: args[:name]] ++ options)
   end
 
-  def get_state(pid) do
-    GenServer.call(pid, :state)
-  end
-
-  def set_state(pid, state) do
-    GenServer.call(pid, {:state, state})
+  def stop(pid) do
+    GenServer.stop(pid)
   end
 
   ### GenServer callbacks ###
 
   def init(args) do
-    folder = args |> Keyword.get(:folder) |> Path.expand
-    callback = Keyword.get(args, :callback) # fn (_) -> IO.puts "Changes!" end
-    config = %{folder: folder, callback: callback}
-    {:ok, _pid} = :fs.start_link(:fs_watcher, folder)
-    :fs.subscribe(:fs_watcher)
-    Logger.info ~s(Started watching "#{folder}" folder for changes.)
-    {:ok, {:pending, config}}
+    start_watcher(args)
+    {:ok, %{folder: args[:folder], callback: args[:callback]}}
   end
 
-  def handle_call(:state, _from, {state, config}),
-    do: {:reply, state, {state, config}}
-
-  def handle_call({:state, state}, _from, {_old_state, config}),
-    do: {:reply, state, {state, config}}
-
-  def handle_info({_pid, {:fs, :file_event}, {path, events}}, {state, config}) do
-    Logger.info ~s(Projects folder changed: #{path} :: #{inspect events})
-    if :modified in events do
-      spawn fn -> config.callback.(path) end
+  def handle_info({_pid, {:fswatch, :file_event}, {path, events}}, config) do
+    Logger.info ~s(File changed: #{path} :: #{inspect events})
+    if :updated in events do
+      unless Path.basename(path) |> String.starts_with?(".") do
+        spawn fn -> config.callback.(path) end
+      end
     end
-    {:noreply, {state, config}}
+    {:noreply, config}
+  end
+
+  ### Helpers ###
+
+  defp start_watcher(args) do
+    name = "#{args[:name]}_watcher" |> String.to_atom
+    folder = args[:folder] |> Path.expand
+    {:ok, _} = Sentix.start_link name, [folder], [filter: [:created, :updated]]
+    Logger.info ~s(Started watching "#{folder}" folder for changes.)
+    Sentix.subscribe name
   end
 end

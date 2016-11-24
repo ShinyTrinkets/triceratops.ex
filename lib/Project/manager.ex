@@ -97,6 +97,11 @@ defmodule Triceratops.Project.Manager do
     {:noreply, Map.delete(list, project)}
   end
 
+  # The catch-all clause, that discards any unknown message
+  def handle_info(_msg, state) do
+    {:noreply, state}
+  end
+
   ### Helpers ###
 
   defp launch(project, path) do

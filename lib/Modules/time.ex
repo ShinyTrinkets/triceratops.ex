@@ -31,8 +31,7 @@ defmodule Triceratops.Servers.Timer do
   ### Client API / Helper methods ###
 
   def start_link(args, options \\ []) do
-    {name, args} = Keyword.pop(args, :name)
-    GenServer.start_link(__MODULE__, args, [name: name] ++ options)
+    GenServer.start_link(__MODULE__, args, [name: args[:name]] ++ options)
   end
 
   def stop(pid) do
@@ -53,8 +52,8 @@ defmodule Triceratops.Servers.Timer do
   def init(args) do
     interval = Keyword.get(args, :interval)
     callback = Keyword.get(args, :callback) # fn (_) -> IO.puts "Work!" end
-    config = %{callback: callback, interval: interval}
     Logger.info ~s(Periodic repeat every #{interval} ms.)
+    config = %{callback: callback, interval: interval, index: 0}
     timer = Process.send_after(self, :work, interval)
     {:ok, {config, timer}}
   end
@@ -73,7 +72,8 @@ defmodule Triceratops.Servers.Timer do
 
   def handle_info(:work, {config, _old_timer}) do
     spawn fn -> config.callback.("") end
-    timer = Process.send_after(self, :work, config.interval)
+    timer = Process.send_after self, :work, config.interval
+    config = Map.put config, :index, (config.index + 1)
     {:noreply, {config, timer}}
   end
 end

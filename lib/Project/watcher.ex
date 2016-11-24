@@ -10,25 +10,30 @@ defmodule Triceratops.Project.Watcher do
   @projects_path Path.expand("projects/")
 
   def start_link do
-    {:ok, _} = :fs.start_link(:fs_watcher, @projects_path)
+    {:ok, _} = Sentix.start_link :fs_watcher, [@projects_path]
     GenServer.start_link(__MODULE__, :ok, name: @name)
   end
 
   ### GenServer callbacks ###
 
   def init(:ok) do
-    :fs.subscribe(:fs_watcher)
+    Sentix.subscribe(:fs_watcher)
     Logger.info ~s(Started watching "#{@projects_path}" folder for changes.)
     {:ok, []}
   end
 
-  def handle_info({_pid, {:fs, :file_event}, {path, events}}, list) do
+  def handle_info({_pid, {:fswatch, :file_event}, {path, events}}, state) do
     path = to_string(path)
     Logger.info ~s(File changed: #{path} :: #{inspect events})
     if Path.extname(path) == ".json" do
       handle_events(path, events)
     end
-    {:noreply, list}
+    {:noreply, state}
+  end
+
+  # The catch-all clause, that discards any unknown message
+  def handle_info(_msg, state) do
+    {:noreply, state}
   end
 
   ### Helpers ###
@@ -40,7 +45,7 @@ defmodule Triceratops.Project.Watcher do
       :created in events ->
         Logger.info ~s(New project file "#{file}".)
         Manager.load(path)
-      :modified in events ->
+      :updated in events ->
         Logger.info ~s(Changed project file "#{file}".)
         Manager.load(path)
       :renamed in events && File.regular?(path) ->

@@ -43,9 +43,10 @@ defmodule Triceratops.Project.Runner do
     params = [input, params]
     # All function names + modules
     module = Map.get(all_functions, op)
-    Logger.info "Operation: #{op} #{inspect params}"
+    Logger.info "Operation #{op} #{inspect params} .."
     # Launch the operation
     result = apply module, op, params
+    Logger.info "Operation #{op} result #{inspect result}"
     # Repeat cycle
     run operations, result
   end
