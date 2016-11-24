@@ -3,7 +3,7 @@ defmodule Triceratops.Mixfile do
 
   def project do
     [app: :triceratops,
-     version: "0.1.0",
+     version: "0.1.1",
      elixir: "~> 1.3",
      escript: escript,
      build_embedded: Mix.env == :prod,
@@ -18,7 +18,7 @@ defmodule Triceratops.Mixfile do
   end
 
   def escript do
-    [main_module: Triceratops]
+    [main_module: Triceratops.CLI]
   end
 
   defp deps do

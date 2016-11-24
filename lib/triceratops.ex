@@ -15,12 +15,6 @@ defmodule Triceratops do
   def start(_type, _args) do
     Triceratops.Supervisor.start_link
   end
-
-  def main(_) do
-    Logger.info "Warming up..."
-    # ...
-    Logger.info "Shutting down..."
-  end
 end
 
 
@@ -40,5 +34,33 @@ defmodule Triceratops.Supervisor do
       worker(Triceratops.Project.Manager, [])
     ]
     supervise(children, strategy: :one_for_one)
+  end
+end
+
+
+defmodule Triceratops.CLI do
+
+  @moduledoc "The escript build application."
+
+  require Logger
+
+  defp forever_sleep do
+    Process.sleep(250)
+    forever_sleep
+  end
+
+  def main(args \\ []) do
+    {opts, _, _} = OptionParser.parse(args, aliases: [h: :help])
+    if opts == [help: true] do
+      {_, _, version} = List.first :application.which_applications
+      IO.puts """
+      \nTriceratops version: #{version};
+      """
+    else
+      Logger.info "Warming up..."
+      Triceratops.Supervisor.start_link
+      forever_sleep
+      Logger.info "Shutting down..."
+    end
   end
 end
