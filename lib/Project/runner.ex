@@ -3,6 +3,7 @@ defmodule Triceratops.Project.Runner do
   @moduledoc "Module for launching projects."
 
   require Logger
+  alias Triceratops.Project.Manager
   import Triceratops.Functions, only: :functions
 
   @doc """
@@ -14,15 +15,24 @@ defmodule Triceratops.Project.Runner do
       is_atom(name) and is_binary(trigger) and is_list(params) and is_list(operations) do
     trigger = String.to_atom(trigger)
     # Fix params: the callback should have 1 param: the operations list
-    params = [name, hd(params), &(run(operations, &1))]
+    params = [name, hd(params), fn(p) ->
+      # All the operations MUST be blocking
+      Manager.set_status(name, :running)
+      run(operations, p)
+      Manager.set_status(name, :pending)
+      # The end of current cycle of operations
+    end]
     # All function names + modules
     module = Map.get(all_functions, trigger)
     Logger.info "Trigger: #{trigger} #{inspect params}"
     # Triggers need: the project name, the parameters from the parsed project
     # and the callback with the rest of the operations
+    Process.flag :trap_exit, true
     # Launch the trigger !!!
     apply module, trigger, params
+    # Returns the PID of the trigger
   end
+
 
   @doc ~s(Callback that runs all operations, in order.)
   @spec run(list, charlist) :: any
@@ -40,12 +50,9 @@ defmodule Triceratops.Project.Runner do
     run operations, result
   end
 
-  @doc ~s(Final call that returns the result.)
+  @doc ~s(Final run that returns the result.)
   @spec run(list, charlist | none) :: charlist | none
-  def run([], result) do
-    Logger.info "Finished a project! Result = #{inspect result}"
-    result
-  end
+  def run([], result), do: result
 
   @doc ~s(Helper function that converts a path to an atom with the base file name.)
   @spec path_to_atom(charlist) :: atom

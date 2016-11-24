@@ -4,14 +4,13 @@ defmodule Triceratops.Project.Watcher do
 
   use GenServer
   require Logger
-  alias Triceratops.Project.Runner
   alias Triceratops.Project.Manager
 
   @name :project_watcher
   @projects_path Path.expand("projects/")
 
   def start_link do
-    {:ok, _pid} = :fs.start_link(:fs_watcher, @projects_path)
+    {:ok, _} = :fs.start_link(:fs_watcher, @projects_path)
     GenServer.start_link(__MODULE__, :ok, name: @name)
   end
 
@@ -35,21 +34,21 @@ defmodule Triceratops.Project.Watcher do
   ### Helpers ###
 
   defp handle_events(path, events) do
-    project = Runner.path_to_atom(path)
+    file = Path.basename(path)
     # Decide what to do with the event
     cond do
       :created in events ->
-        Logger.info ~s(New project: #{project}.)
-        Manager.load(project, path)
+        Logger.info ~s(New project file "#{file}".)
+        Manager.load(path)
       :modified in events ->
-        Logger.info ~s(Changed project: #{project}.)
-        Manager.load(project, path)
+        Logger.info ~s(Changed project file "#{file}".)
+        Manager.load(path)
       :renamed in events && File.regular?(path) ->
-        Logger.info ~s(Renamed/moved project: #{project}.)
-        Manager.load(project, path)
+        Logger.info ~s(Renamed/moved project file "#{file}".)
+        Manager.load(path)
       :renamed in events ->
-        Logger.info ~s(Deleted project: #{project}.)
-        Manager.unload(project)
+        Logger.info ~s(Deleted project file "#{file}".)
+        Manager.unload(path)
     end
   end
 end

@@ -8,12 +8,8 @@ defmodule Triceratops.Modules.LocalFs do
   @doc ~s(TRIGGER: Start events when new files are created inside a folder.)
   @spec trigger_file_watcher(atom, charlist, reference) :: any
   def trigger_file_watcher(name, folder, callback) do
-    {:ok, _} = LocalWatcher.start_link name: name, folder: folder,
-      callback: fn(path) ->
-        LocalWatcher.set_state(name, :running)
-        callback.(path)
-        LocalWatcher.set_state(name, :pending)
-      end
+    {:ok, pid} = LocalWatcher.start_link name: name, folder: folder, callback: callback
+    pid
   end
 
   @doc ~s(Manually trigger a list of local files.)

@@ -2,7 +2,7 @@ defmodule Triceratops do
 
   @moduledoc "The main module."
 
-  # use Application
+  use Application
   require Logger
 
   @on_load :on_load
@@ -12,9 +12,9 @@ defmodule Triceratops do
     :ok
   end
 
-  # def start(_type, _args) do
-  #   Triceratops.Supervisor.start_link
-  # end
+  def start(_type, _args) do
+    Triceratops.Supervisor.start_link
+  end
 
   def main(_) do
     Logger.info "Warming up..."
