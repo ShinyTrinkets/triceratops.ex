@@ -3,12 +3,19 @@ defmodule Triceratops.Modules.LocalFs do
   @moduledoc "Module for dealing with local files and folders."
 
   require Logger
-  alias Triceratops.Servers.LocalWatcher
 
   @doc ~s(TRIGGER: Start events when new files are created inside a folder.)
   @spec trigger_file_watcher(atom, charlist, reference) :: any
   def trigger_file_watcher(name, folder, callback) do
-    {:ok, pid} = LocalWatcher.start_link name: name, folder: folder, callback: callback
+    {:ok, pid} = FsWatch.start_link name: name, folder: folder,
+      callback: fn({path, events}) ->
+        Logger.info ~s(Detected file change #{path} :: #{inspect events})
+        if :updated in events do
+          unless Path.basename(path) |> String.starts_with?(".") do
+            spawn fn -> callback.(path) end
+          end
+        end
+      end # Of callback
     pid
   end
 
@@ -88,51 +95,4 @@ defmodule Triceratops.Modules.LocalFs do
   @spec file_delete(charlist) :: none
   def file_delete(input), do: file_delete(input, nil)
 
-end
-
-
-defmodule Triceratops.Servers.LocalWatcher do
-
-  @moduledoc "Module implementing a local folder watcher."
-
-  use GenServer
-  require Logger
-
-  ### Client API / Helper methods ###
-
-  @doc ~s(Watch a specified directory.)
-  def start_link(args, options \\ []) do
-    GenServer.start_link(__MODULE__, args, [name: args[:name]] ++ options)
-  end
-
-  def stop(pid) do
-    GenServer.stop(pid)
-  end
-
-  ### GenServer callbacks ###
-
-  def init(args) do
-    start_watcher(args)
-    {:ok, %{folder: args[:folder], callback: args[:callback]}}
-  end
-
-  def handle_info({_pid, {:fswatch, :file_event}, {path, events}}, config) do
-    Logger.info ~s(File changed: #{path} :: #{inspect events})
-    if :updated in events do
-      unless Path.basename(path) |> String.starts_with?(".") do
-        spawn fn -> config.callback.(path) end
-      end
-    end
-    {:noreply, config}
-  end
-
-  ### Helpers ###
-
-  defp start_watcher(args) do
-    name = "#{args[:name]}_watcher" |> String.to_atom
-    folder = args[:folder] |> Path.expand
-    {:ok, _} = Sentix.start_link name, [folder], [filter: [:created, :updated]]
-    Logger.info ~s(Started watching "#{folder}" folder for changes.)
-    Sentix.subscribe name
-  end
 end

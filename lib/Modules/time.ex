@@ -50,17 +50,16 @@ defmodule Triceratops.Servers.Timer do
 
   @doc ~s(The interval is in milisec, the callback must have arity 1.)
   def init(args) do
-    interval = Keyword.get(args, :interval)
-    callback = Keyword.get(args, :callback) # fn (_) -> IO.puts "Work!" end
+    interval = args[:interval]
     Logger.info ~s(Periodic repeat every #{interval} ms.)
-    config = %{callback: callback, interval: interval, index: 0}
+    config = %{callback: args[:callback], interval: interval, index: 0}
     timer = Process.send_after(self, :work, interval)
     {:ok, {config, timer}}
   end
 
   def handle_call(:reset, _from, {config, old_timer}) do
     Process.cancel_timer(old_timer)
-    timer = Process.send_after(self, :work, config.interval)
+    timer = Process.send_after self, :work, config.interval
     {:reply, :ok, {config, timer}}
   end
 

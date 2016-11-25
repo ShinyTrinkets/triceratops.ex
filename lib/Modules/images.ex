@@ -1,6 +1,9 @@
 defmodule Triceratops.Modules.Images do
 
-  @moduledoc "Module for dealing with images."
+  @moduledoc """
+  Module for dealing with images.
+  This requires that "optipng" and "jpegoptim" are already installed.
+  """
 
   require Logger
   alias Porcelain.Result

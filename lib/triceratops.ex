@@ -59,6 +59,8 @@ defmodule Triceratops.CLI do
     else
       Logger.info "Warming up..."
       Triceratops.Supervisor.start_link
+      Process.sleep(250)
+      Triceratops.Project.Runner.initial_launch
       forever_sleep
       Logger.info "Shutting down..."
     end

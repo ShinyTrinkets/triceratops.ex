@@ -54,14 +54,19 @@ defmodule Triceratops.Project.Manager do
   def handle_call({:status, project, status}, _from, list) do
     state = Map.get(list, project)
     if state do
-      if state.status == :restart do
-        Logger.info ~s(Project "#{project}" was scheduled to restart NOW.)
-        pid = restart(project, list)
-        state = Map.merge(state, %{pid: pid, status: status})
-        {:reply, status, Map.put(list, project, state)}
-      else
-        state = Map.put(state, :status, status)
-        {:reply, status, Map.put(list, project, state)}
+      case state.status do
+        :restart ->
+          Logger.info ~s(Project "#{project}" was scheduled to restart NOW.)
+          pid = restart(project, list)
+          state = Map.merge(state, %{pid: pid, status: status})
+          {:reply, status, Map.put(list, project, state)}
+        :shutdown ->
+          Logger.info ~s(Project "#{project}" was scheduled to shutdown NOW.)
+          Process.exit(state.pid, :shutdown)
+          {:reply, :shutdown, Map.delete(list, project)}
+        _ ->
+          state = Map.put(state, :status, status)
+          {:reply, status, Map.put(list, project, state)}
       end
     else
       {:reply, nil, list}
@@ -77,24 +82,20 @@ defmodule Triceratops.Project.Manager do
   """
   def handle_cast({:load, project, path}, list) do
     if Map.has_key?(list, project) do
-      state = Map.get(list, project)
-      if state.status == :pending do
-        Logger.info ~s(Project "#{project}" is reloading NOW.)
-        pid = restart(project, path, list)
-        {:noreply, Map.put(list, project, %{status: :pending, path: path, pid: pid})}
-      else
-        Logger.info ~s(Project "#{project}" is scheduled for RESTART.)
-        state = Map.put(state, :status, :restart)
-        {:noreply, Map.put(list, project, state)}
-      end
+      handle_load_existing(project, path, list)
     else
       pid = launch(project, path)
-      {:noreply, Map.put(list, project, %{status: :pending, path: path, pid: pid})}
+      state = %{status: :pending, path: path, pid: pid}
+      {:noreply, Map.put(list, project, state)}
     end
   end
 
   def handle_cast({:unload, project}, list) do
-    {:noreply, Map.delete(list, project)}
+    if Map.has_key?(list, project) do
+      handle_unload_existing(project, list)
+    else
+      {:noreply, Map.delete(list, project)}
+    end
   end
 
   # The catch-all clause, that discards any unknown message
@@ -103,6 +104,29 @@ defmodule Triceratops.Project.Manager do
   end
 
   ### Helpers ###
+
+  defp handle_load_existing(project, path, list) do
+    if get_in(list, [project, :status]) == :pending do
+      Logger.info ~s(Project "#{project}" is reloading NOW.)
+      pid = restart(project, path, list)
+      state = %{status: :pending, path: path, pid: pid}
+      {:noreply, Map.put(list, project, state)}
+    else
+      Logger.info ~s(Project "#{project}" is scheduled for RESTART.)
+      {:noreply, update_in(list, [project, :status], fn(_)->:restart end)}
+    end
+  end
+
+  defp handle_unload_existing(project, list) do
+    if get_in(list, [project, :status]) == :pending do
+      Logger.info ~s(Project "#{project}" is shutting down NOW.)
+      Process.exit(get_in(list, [project, :pid]), :shutdown)
+      {:noreply, Map.delete(list, project)}
+    else
+      Logger.info ~s(Project "#{project}" is scheduled for SHUTDOWN.)
+      {:noreply, update_in(list, [project, :status], fn(_)->:shutdown end)}
+    end
+  end
 
   defp launch(project, path) do
     if File.regular?(path) && Path.extname(path) == ".json" do

@@ -4,7 +4,23 @@ defmodule Triceratops.Project.Runner do
 
   require Logger
   alias Triceratops.Project.Manager
+  alias Triceratops.Modules.LocalFs
   import Triceratops.Functions, only: :functions
+
+  @doc ~s(Helper function to return the projects path.)
+  def projects_path, do: Path.expand "projects/", File.cwd!
+
+  @spec valid_project(charlist) :: boolean
+  def valid_project(path), do: String.ends_with?(path, ".json")
+
+  @doc ~s(Initial loading of the projects, on startup.)
+  def initial_launch do
+    Logger.info ~s(Loading all initial projects ...)
+    projects_path
+      |> LocalFs.ls_r
+      |> Enum.filter(&valid_project/1)
+      |> Enum.each(&Manager.load(&1))
+  end
 
   @doc """
   Launches the project, that contains a list of operations
@@ -43,10 +59,10 @@ defmodule Triceratops.Project.Runner do
     params = [input, params]
     # All function names + modules
     module = Map.get(all_functions, op)
-    Logger.info "Operation #{op} #{inspect params} .."
+    Logger.info ~s(Operation #{op} #{inspect params} ...)
     # Launch the operation
     result = apply module, op, params
-    Logger.info "Operation #{op} result #{inspect result}"
+    Logger.info ~s(Operation #{op} result "#{inspect result}".)
     # Repeat cycle
     run operations, result
   end
