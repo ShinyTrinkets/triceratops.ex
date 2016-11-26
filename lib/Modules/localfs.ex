@@ -9,8 +9,7 @@ defmodule Triceratops.Modules.LocalFs do
   def trigger_file_watcher(name, folder, callback) do
     {:ok, pid} = FsWatch.start_link name: name, folder: folder,
       callback: fn({path, events}) ->
-        Logger.info ~s(Detected file change #{path} :: #{inspect events})
-        if :updated in events do
+        if :created in events or :updated in events do
           unless Path.basename(path) |> String.starts_with?(".") do
             spawn fn -> callback.(path) end
           end

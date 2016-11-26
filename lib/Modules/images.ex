@@ -100,29 +100,45 @@ defmodule Triceratops.Modules.Images do
   Optimize PNG and JPG images;
   Requires: optipng and jpegoptim;
   """
-  @spec image_optimize(list(charlist), integer) :: list(charlist)
+  @spec image_optimize(any, charlist) :: any
+  def image_optimize(input, level) when is_binary(level),
+    do: image_optimize(input, String.to_atom(level))
+
+  @spec image_optimize(list(charlist), atom) :: list(charlist)
   def image_optimize(input, level) when is_list(input) do
     Logger.info ~s(Optimizing #{length(input)} images...)
     Enum.map(input, fn(f) -> image_optimize(f, level) end)
   end
 
-  @spec image_optimize(charlist, integer) :: charlist
-  def image_optimize(input, level) when is_binary(input) do
-    optipng = ~s(optipng -strip all -o#{level} "#{input}")
-    jpegopt = ~s(jpegoptim --strip-all --max=#{level*10} "#{input}")
-    command = case Path.extname(input) do
-      ".png" -> optipng
-      ".bmp" -> optipng
-      ".gif" -> optipng
-      ".tiff" -> optipng
-      ".jpg" -> jpegopt
-      ".jpeg" -> jpegopt
-      _ -> ""
+  @spec image_optimize(charlist, atom) :: charlist
+  def image_optimize(input, level) when is_binary(input) and is_atom(level) do
+    ext = Path.extname(input)
+    command = cond do
+      ext in [".png", ".bmp", ".gif", ".tiff"] -> optipng(input, level)
+      ext in [".jpg", ".jpeg"] -> jpegopt(input, level)
+      true -> ""
     end
     # Execute optimize
     %Result{status: status} = Porcelain.shell(command)
     if status != 0, do: raise "Cannot optimize image!"
     Logger.info ~s(Optimized image "#{input}" level "#{level}".)
     input # return the output for next operation
+  end
+
+  defp optipng(input, level) do
+    level = case level do
+      :min -> ""
+      :max -> "-o7"
+        _  -> "-o5"
+    end
+    ~s(optipng -strip all #{level} "#{input}")
+  end
+  defp jpegopt(input, level) do
+    level = case level do
+      :min -> ""
+      :max -> "-m70"
+        _  -> "-m80"
+    end
+    ~s(jpegoptim --strip-all #{level} "#{input}")
   end
 end
