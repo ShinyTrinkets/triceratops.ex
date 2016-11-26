@@ -13,18 +13,17 @@ defmodule Triceratops do
   end
 
   def start(_type, _args) do
-    Triceratops.Supervisor.start_link
+    Triceratops.Application.start
   end
 end
 
-
-defmodule Triceratops.Supervisor do
+defmodule Triceratops.Application do
 
   @moduledoc "The main supervisor."
 
   use Supervisor
 
-  def start_link do
+  def start do
     Supervisor.start_link(__MODULE__, :ok)
   end
 
@@ -34,35 +33,5 @@ defmodule Triceratops.Supervisor do
       worker(Triceratops.Project.Manager, [])
     ]
     supervise(children, strategy: :one_for_one)
-  end
-end
-
-
-defmodule Triceratops.CLI do
-
-  @moduledoc "The escript build application."
-
-  require Logger
-
-  defp forever_sleep do
-    Process.sleep(250)
-    forever_sleep
-  end
-
-  def main(args \\ []) do
-    {opts, _, _} = OptionParser.parse(args, aliases: [h: :help])
-    if opts == [help: true] do
-      {_, _, version} = List.first :application.which_applications
-      IO.puts """
-      \nTriceratops version: #{version};
-      """
-    else
-      Logger.info "Warming up..."
-      Triceratops.Supervisor.start_link
-      Process.sleep(250)
-      Triceratops.Project.Runner.initial_launch
-      forever_sleep
-      Logger.info "Shutting down..."
-    end
   end
 end

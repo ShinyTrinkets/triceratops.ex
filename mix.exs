@@ -18,12 +18,13 @@ defmodule Triceratops.Mixfile do
   end
 
   def escript do
-    [main_module: Triceratops.CLI]
+    [main_module: Triceratops.Util.CLI]
   end
 
   defp deps do
     [
       {:logger_file_backend, "~> 0.0"},
+      {:temp, "~> 0.4"},
       {:poison, "~> 3.0"},
       {:porcelain, "~> 2.0"},
       {:fswatch, github: "croqaz/FsWatch"},

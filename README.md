@@ -1,23 +1,27 @@
 
-# Triceratops
+# Triceratops :smiling_imp:
 
-### Triceratops is a software automation platform, based on modules
+### Triceratops is a software automation platform, based on modules, made for Humans;
 
 Modules:
 
 - watch local files and folders for changes
 - watch FTP, or SSH files and folders for changes
 - watch Github, or Bitbucket repository for changes
-- read websites, post and put HTTP requests
+- read websites, test page speed, take screen-shots on different resolutions
+- get, post and put HTTP requests
 - ping a list of websites or IPs
 - check e-mail, or send e-mails
 - copy, move, delete files and folders
 - compress and decompress different archive types (zip, 7z, gzip, bzip2, etc)
 - encrypt and decrypt files (AES, Blowfish, DES3, RSA public keys)
 - convert photos from one format to another, rotate, resize, optimize (PNG, JPG)
+- export Photoshop PSD files
 - join more photos into a time-lapse
 - upload files to Amazon S3, Google Drive, or Dropbox
 - operations in database (read, update, delete)
 - create JSON, CSV, or XML reports
 - hash check and sign files (MD5, SHA)
 - execute programs from command line
+
+Made by :copyright: :registered: :radio_button:
