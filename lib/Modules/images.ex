@@ -127,11 +127,11 @@ defmodule Triceratops.Modules.Images do
 
   defp optipng(input, level) do
     level = case level do
-      :min -> ""
+      :min -> "-o3"
       :max -> "-o7"
         _  -> "-o5"
     end
-    ~s(optipng -strip all #{level} "#{input}")
+    ~s(optipng -quiet -strip all #{level} "#{input}")
   end
   defp jpegopt(input, level) do
     level = case level do
@@ -139,6 +139,6 @@ defmodule Triceratops.Modules.Images do
       :max -> "-m70"
         _  -> "-m80"
     end
-    ~s(jpegoptim --strip-all #{level} "#{input}")
+    ~s(jpegoptim --quiet --strip-all #{level} "#{input}")
   end
 end
