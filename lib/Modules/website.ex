@@ -8,11 +8,15 @@ defmodule Triceratops.Modules.Website do
   require Logger
   alias Porcelain.Result
 
-  @spec ping_host(charlist, charlist) :: float
-  def ping_host(_, host), do: ping_host(host)
+  @doc "Send ICMP ECHO_REQUEST packets to network hosts."
+  @spec ping_net(list(charlist)) :: list(float)
+  def ping_net(input) when is_list(input) do
+    Logger.info ~s(Pinging #{length(input)} hosts...)
+    Enum.map(input, fn(f) -> ping_net(f) end)
+  end
 
-  @spec ping_host(charlist) :: float
-  def ping_host(host) do
+  @spec ping_net(charlist) :: float
+  def ping_net(host) do
     command = ~s(ping -c 5 -s 120 #{host})
     # Execute ping command
     %Result{status: status, out: out} = Porcelain.shell(command)
@@ -22,7 +26,17 @@ defmodule Triceratops.Modules.Website do
   end
 
 
-  def rasterize_page(%{output: output} = options) do
+  def rasterize_page(input, output, options \\ %{})
+
+  @spec rasterize_page(list(charlist), charlist, map) :: list(charlist)
+  def rasterize_page(input, output, options) when is_list(input) do
+    Logger.info ~s(Rasterizing #{length(input)} pages...)
+    Enum.map(input, fn(f) -> rasterize_page(f, output, options) end)
+  end
+
+  @spec rasterize_page(charlist, charlist, map) :: charlist
+  def rasterize_page(address, output, options) do
+    options = Map.merge(options, %{address: address, output: output})
     js_path = rasterize_page_js(options)
     # Execute ping command
     %Result{status: status} = Porcelain.shell("phantomjs #{js_path}")
