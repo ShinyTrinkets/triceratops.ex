@@ -13,7 +13,8 @@ defmodule Triceratops.Mixfile do
 
   def application do
     [applications: [
-      :logger, :logger_file_backend, :porcelain, :fswatch, :filesmasher, :bamboo, :bamboo_smtp]
+      :logger, :logger_file_backend, :porcelain, :fswatch, :filesmasher,
+      :httpoison, :bamboo, :bamboo_smtp]
     ]
   end
 
@@ -30,6 +31,7 @@ defmodule Triceratops.Mixfile do
       {:fswatch, github: "croqaz/FsWatch"},
       {:filesmasher, github: "croqaz/FileSmasher"},
       {:bamboo_smtp, "~> 1.2"},
+      {:httpoison, "~> 0.10"},
       {:credo, "~> 0.5", only: [:dev, :test]}
     ]
   end

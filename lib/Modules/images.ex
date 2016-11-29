@@ -2,7 +2,7 @@ defmodule Triceratops.Modules.Images do
 
   @moduledoc """
   Module for dealing with images.
-  This requires that "optipng" and "jpegoptim" are already installed.
+  This requires that "pngquant" and "jpegoptim" are already installed.
   """
 
   require Logger
@@ -98,7 +98,7 @@ defmodule Triceratops.Modules.Images do
 
   @doc """
   Optimize PNG and JPG images;
-  Requires: optipng and jpegoptim;
+  Requires: pngquant and jpegoptim;
   """
   @spec image_optimize(any, charlist) :: any
   def image_optimize(input, level) when is_binary(level),
@@ -114,7 +114,7 @@ defmodule Triceratops.Modules.Images do
   def image_optimize(input, level) when is_binary(input) and is_atom(level) do
     ext = Path.extname(input)
     command = cond do
-      ext in [".png", ".bmp", ".gif", ".tiff"] -> optipng(input, level)
+      ext in [".png", ".bmp", ".gif", ".tiff"] -> pngquant(input, level)
       ext in [".jpg", ".jpeg"] -> jpegopt(input, level)
       true -> ""
     end
@@ -125,13 +125,13 @@ defmodule Triceratops.Modules.Images do
     input # return the output for next operation
   end
 
-  defp optipng(input, level) do
+  defp pngquant(input, level) do
     level = case level do
-      :min -> "-o3"
-      :max -> "-o7"
-        _  -> "-o5"
+      :min -> "9" # speed 9
+      :max -> "1" # slow
+        _  -> "3" # default speed 3
     end
-    ~s(optipng -quiet -strip all #{level} "#{input}")
+    ~s(pngquant --skip-if-larger -f -s#{level} -o "#{input}" "#{input}")
   end
   defp jpegopt(input, level) do
     level = case level do
