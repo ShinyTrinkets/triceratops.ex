@@ -1,4 +1,4 @@
-defmodule Triceratops.Modules.Website do
+defmodule Triceratops.Modules.Webmaster do
 
   @moduledoc """
   Module for dealing with websites and pages.
