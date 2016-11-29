@@ -38,7 +38,7 @@ defmodule Triceratops.Modules.Webmaster do
   def rasterize_page(address, output, options) do
     options = Map.merge(options, %{address: address, output: output})
     js_path = rasterize_page_js(options)
-    # Execute ping command
+    # Execute JS code
     %Result{status: status} = Porcelain.shell("phantomjs #{js_path}")
     if status != 0, do: raise "Cannot rasterize page!"
     File.rm js_path
@@ -48,8 +48,7 @@ defmodule Triceratops.Modules.Webmaster do
   def rasterize_page_js(options) do
     {:ok, tmp_path} = Temp.mkdir %{prefix: "triceratops"}
     js_path = "#{tmp_path}/rasterize_page.js"
-    code_js = rasterize_page_code options
-    File.write! js_path, code_js
+    File.write! js_path, rasterize_page_code(options)
     js_path
   end
 
@@ -68,23 +67,133 @@ defmodule Triceratops.Modules.Webmaster do
       :phone -> "Mozilla/5.0 (Linux; U; Android 4.0;) AppleWebKit/537.3 (KHTML, like Gecko) Chrome/55.0 Mobile Safari/537.3"
     end
     """
-    var page = require('webpage').create();
-    page.settings.userAgent = "#{agent}";
-    page.viewportSize = {width: #{width}, height: #{height}};
-    page.zoomFactor = #{zoom};
+    var page = require('webpage').create()
+    page.settings.userAgent = "#{agent}"
+    page.viewportSize = {width: #{width}, height: #{height}}
+    page.zoomFactor = #{zoom}
     page.open("#{address}", function (status) {
       if (status !== 'success') {
-        console.log('Unable to load the address "#{address}"!');
-        phantom.exit(1);
+        console.log('Unable to load the address "#{address}"!')
+        phantom.exit(1)
       } else {
-        console.log('Rendering "#{address}"...');
+        console.log('Rendering "#{address}"...')
         window.setTimeout(function () {
-          page.render("#{output}");
-          phantom.exit();
-        }, 250);
+          page.render("#{output}")
+          phantom.exit()
+        }, 250)
       }
-    });
+    })
     """
+  end
+
+
+  @spec netstat_page(list(charlist), charlist) :: list(charlist)
+  def netstat_page(input, output) when is_list(input) do
+    Logger.info ~s(Net-stat #{length(input)} pages...)
+    Enum.map(input, fn(f) -> netstat_page(f, output) end)
+  end
+
+  @spec netstat_page(charlist, charlist) :: charlist
+  def netstat_page(address, output) do
+    js_path = netstat_page_js(address)
+    # Execute JS code
+    %Result{out: stdout, status: status} = Porcelain.shell("phantomjs #{js_path}")
+    if status != 0, do: raise "Cannot net-stat page!"
+    File.rm js_path
+    File.write! output, stdout
+    netstat_analyze stdout
+    output # output for the next operation
+  end
+
+  def netstat_page_js(address) do
+    {:ok, tmp_path} = Temp.mkdir %{prefix: "triceratops"}
+    js_path = "#{tmp_path}/netstat_page.js"
+    File.write! js_path, netstat_page_code(address)
+    js_path
+  end
+
+  def netstat_page_code(address) do
+    address = if String.starts_with?(address, "http"), do: address, else: "http://#{address}"
+    """
+    var page = require('webpage').create()
+    var startTime = new Date()
+    var statistics = {}
+    var sorted = []
+    page.onResourceRequested = function(req) {
+      if (req.time) req.time = new Date(req.time)
+      statistics[req.id] = { request: req, startReply: null, endReply: null }
+      delete req.headers
+      delete req.id
+    }
+    page.onResourceReceived = function(res) {
+      self = statistics[res.id]
+      if (res.time) res.time = new Date(res.time)
+      if (res.stage === 'start') self.startReply = res
+      if (res.stage === 'end') {
+        self.endReply = res
+        sorted.push({
+          method: self.request.method,
+          url: self.request.url,
+          receive_time: self.endReply.time - self.startReply.time,
+          wait_time: self.startReply.time - self.request.time,
+          total_time: self.endReply.time - self.request.time,
+          body_size: self.startReply.bodySize,
+          content_type: self.endReply.contentType.split(";")[0],
+          final_status: self.endReply.statusText
+        })
+      }
+    }
+    page.open("#{address}", function(status) {
+      if (status !== 'success') {
+        console.log('Unable to load the address "#{address}"!')
+        phantom.exit(1)
+      } else {
+        var endTime = new Date()
+        var data = {
+          url: "#{address}",
+          title: page.evaluate(function() { return document.title }),
+          loading_time: (endTime - startTime),
+          start_time: startTime,
+          end_time: endTime,
+          statistics: sorted
+        }
+        console.log(JSON.stringify(data, undefined, 2))
+        phantom.exit()
+      }
+    })
+    """
+  end
+
+  def netstat_analyze(stdout) do
+    alias Poison.Parser
+    data = Parser.parse!(stdout)
+    stats = data["statistics"]
+    IO.puts ~s(Requests : #{length stats})
+
+    speed_stats = stats
+      |> Enum.filter( &(!String.starts_with?(&1["url"], "data:")) )
+      |> Enum.map( &({ &1["receive_time"], &1["url"] }) )
+    fastest = speed_stats
+      |> Enum.sort( &(elem(&1, 0) < elem(&2, 0)) )
+      |> Enum.take(5)
+    slowest = speed_stats
+      |> Enum.sort( &(elem(&1, 0) > elem(&2, 0)) )
+      |> Enum.take(5)
+
+    size_stats = stats
+      |> Enum.map( &({ &1["body_size"], &1["url"] }) )
+    smallest = size_stats
+      |> Enum.sort( &(elem(&1, 0) < elem(&2, 0)) )
+      |> Enum.take(5)
+    largest = size_stats
+      |> Enum.sort( &(elem(&1, 0) > elem(&2, 0)) )
+      |> Enum.take(5)
+
+    IO.puts ~s(\nFastest : #{inspect fastest})
+    IO.puts ~s(\nSlowest : #{inspect slowest})
+
+    IO.puts ~s(\nSmallest : #{inspect smallest})
+    IO.puts ~s(\nLargest : #{inspect largest})
   end
 
 end

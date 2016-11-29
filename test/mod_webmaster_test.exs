@@ -5,7 +5,8 @@ defmodule ModuleWebmasterTest do
   @screens "test/screens"
 
   setup_all do
-    File.mkdir! @screens
+    File.rm_rf @screens
+    File.mkdir @screens
     on_exit fn -> File.rm_rf @screens end
     :ok
   end
