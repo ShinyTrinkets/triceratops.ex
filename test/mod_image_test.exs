@@ -1,6 +1,6 @@
 defmodule ModuleImageTest do
   use ExUnit.Case
-  import Triceratops.Modules.Images
+  import Triceratops.Modules.Image
 
   @cats "test/cats"
 

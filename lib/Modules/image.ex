@@ -1,4 +1,4 @@
-defmodule Triceratops.Modules.Images do
+defmodule Triceratops.Modules.Image do
 
   @moduledoc """
   Module for dealing with images.

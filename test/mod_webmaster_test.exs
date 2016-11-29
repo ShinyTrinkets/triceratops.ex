@@ -13,22 +13,24 @@ defmodule ModuleWebmasterTest do
 
   test "website ping domain" do
     assert is_float(ping_net "google.com")
-    result = ping_net ["facebook.com", "twitter.com", "github.com"]
+    result = ping_net ["facebook.com", "twitter.com", "github.com", "linkedin.com"]
     assert is_list(result)
     assert is_float(hd(result))
   end
 
   test "website rasterize page" do
-    screen = "#{@screens}/google.desktop.png"
-    rasterize_page "google.com", screen
+    screen = rasterize_page "google.com", @screens
     assert File.regular?(screen)
 
-    screen = "#{@screens}/google.tablet.png"
-    rasterize_page "google.com", screen, %{size: :tablet}
+    screen = rasterize_page "google.com", @screens, %{size: :tablet}
     assert File.regular?(screen)
 
-    screen = "#{@screens}/google.phone.png"
-    rasterize_page "google.com", screen, %{size: :phone}
+    screen = rasterize_page "google.com", @screens, %{size: :phone}
     assert File.regular?(screen)
+
+    result = rasterize_page ["facebook.com", "twitter.com", "github.com", "linkedin.com"],
+      @screens, %{size: :tablet}
+    assert is_list(result)
+    assert is_binary(hd(result))
   end
 end

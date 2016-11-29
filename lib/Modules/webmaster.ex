@@ -26,6 +26,10 @@ defmodule Triceratops.Modules.Webmaster do
   end
 
 
+  @doc "Helper method to convert HTTP addresses into file names."
+  def sluggify_address(addr), do: Regex.replace(~r/[^a-z0-9]/, addr, "_")
+
+
   def rasterize_page(input, output, options \\ %{})
 
   @spec rasterize_page(list(charlist), charlist, map) :: list(charlist)
@@ -34,28 +38,41 @@ defmodule Triceratops.Modules.Webmaster do
     Enum.map(input, fn(f) -> rasterize_page(f, output, options) end)
   end
 
+  @doc """
+  Makes a print screen of the page and saves the PNG file in the output folder.
+  """
   @spec rasterize_page(charlist, charlist, map) :: charlist
   def rasterize_page(address, output, options) do
-    options = Map.merge(options, %{address: address, output: output})
-    js_path = rasterize_page_js(options)
+    options = rasterize_options address, output, options
+    js_path = rasterize_page_js options
     # Execute JS code
     %Result{status: status} = Porcelain.shell("phantomjs #{js_path}")
-    if status != 0, do: raise "Cannot rasterize page!"
     File.rm js_path
-    output # output for the next operation
+    if status != 0, do: raise "Cannot rasterize page!"
+    options.output # output for the next operation
   end
 
-  def rasterize_page_js(options) do
+  defp rasterize_options(address, output, options) do
+    slug = sluggify_address(address
+      |> String.replace_leading("http://", "")
+      |> String.replace_leading("https://", "")
+      |> String.replace_trailing("/", "")
+    )
+    address = if String.starts_with?(address, "http"), do: address, else: "http://#{address}"
+    size = Map.get options, :size, :desktop
+    zoom = Map.get options, :zoom, 1
+    output = "#{output}/#{slug}.#{size}.png"
+    %{address: address, output: output, size: size, zoom: zoom}
+  end
+
+  defp rasterize_page_js(options) do
     {:ok, tmp_path} = Temp.mkdir %{prefix: "triceratops"}
     js_path = "#{tmp_path}/rasterize_page.js"
     File.write! js_path, rasterize_page_code(options)
     js_path
   end
 
-  def rasterize_page_code(%{address: address, output: output} = options) do
-    address = if String.starts_with?(address, "http"), do: address, else: "http://#{address}"
-    zoom = Map.get options, :zoom, 1
-    size = Map.get options, :size, :desktop
+  defp rasterize_page_code(%{address: address, output: output, size: size, zoom: zoom}) do
     {width, height} = case size do
       :desktop -> {1366, 768}
       :tablet -> {1024, 768}
@@ -93,26 +110,36 @@ defmodule Triceratops.Modules.Webmaster do
     Enum.map(input, fn(f) -> netstat_page(f, output) end)
   end
 
+  @doc """
+  Calculates web-page statistics and saves the result in the output folder.
+  """
   @spec netstat_page(charlist, charlist) :: charlist
   def netstat_page(address, output) do
     js_path = netstat_page_js(address)
     # Execute JS code
     %Result{out: stdout, status: status} = Porcelain.shell("phantomjs #{js_path}")
-    if status != 0, do: raise "Cannot net-stat page!"
     File.rm js_path
-    File.write! output, stdout
+    if status != 0, do: raise "Cannot net-stat page!"
     netstat_analyze stdout
+    # Convert address into a file string
+    slug = sluggify_address(
+      address
+        |> String.replace_leading("http://", "")
+        |> String.replace_leading("https://", "")
+    )
+    output = "#{output}/#{slug}.json"
+    File.write! output, stdout
     output # output for the next operation
   end
 
-  def netstat_page_js(address) do
+  defp netstat_page_js(address) do
     {:ok, tmp_path} = Temp.mkdir %{prefix: "triceratops"}
     js_path = "#{tmp_path}/netstat_page.js"
     File.write! js_path, netstat_page_code(address)
     js_path
   end
 
-  def netstat_page_code(address) do
+  defp netstat_page_code(address) do
     address = if String.starts_with?(address, "http"), do: address, else: "http://#{address}"
     """
     var page = require('webpage').create()

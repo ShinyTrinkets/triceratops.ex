@@ -1,6 +1,6 @@
 defmodule Triceratops.Modules.FtpFs do
 
-  @moduledoc "Module for dealing remote FTP files and folders."
+  @moduledoc "Module for dealing with remote FTP files and folders."
 
   require Logger
 
